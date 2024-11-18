@@ -1,0 +1,33 @@
+/* PlayerTable.css or App.css */
+
+/* Navigation bar styling */
+nav {
+  display: flex;
+  justify-content: center; /* Center the links */
+  background-color: rgba(44, 62, 80, 0.6); /* Transparent dark background */
+  padding: 15px 0;
+  border: 1px solid #2c3e50; /* Border with the same color as the background */
+  margin-bottom: 20px; /* Space below the navbar */
+  width: 100%; /* Make the navbar span the full width */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}
+
+nav a {
+  color: #ecf0f1; /* Light color for links */
+  margin: 0 20px;
+  text-decoration: none;
+  font-size: 18px;
+  font-weight: 500;
+  transition: color 0.3s ease; /* Smooth color transition */
+}
+
+nav a:hover {
+  color: #3498db; /* Light blue on hover */
+}
+
+/* Active link styling */
+nav a.active {
+  color: #3498db;
+  border-bottom: 2px solid #3498db; /* Add an underline effect for the active link */
+  padding-bottom: 5px;
+}

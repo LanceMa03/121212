@@ -1,0 +1,152 @@
+/* PlayerTable.css */
+.form-container {
+  margin: 20px 0;
+  padding: 20px;
+  border: 1px solid #dddddd;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+}
+
+.form-container label {
+  margin-right: 10px;
+}
+
+.form-container input, .form-container select {
+width: 120px;
+  margin-right: 10px;
+  margin-left: 5px;
+  padding: 8px;
+  border: 1px solid #dddddd;
+  border-radius: 4px;
+}
+
+.form-container select {
+  width: 140px;
+}
+
+.form-container button {
+  padding: 8px 12px;
+  background-color: #3498db;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 10px;
+}
+
+.form-container button:hover {
+  background-color: #2980b9;
+}
+
+.action-button {
+  background-color: #e74c3c;
+  color: #ffffff;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.action-button.edit {
+  background-color: #f39c12;
+}
+
+.action-button:hover {
+  opacity: 0.8;
+}
+
+/* Container styling for the table */
+.player-table-container {
+    width: 95%;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Table styling */
+  .player-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #ffffff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Header row styling */
+  .player-table thead {
+    background-color: #3498db;
+    color: white;
+  }
+  
+  .player-table thead th {
+    padding: 12px;
+    font-size: 16px;
+    text-transform: uppercase;
+  }
+  
+  /* Table row styling */
+  .player-table tbody tr {
+    transition: background-color 0.2s;
+  }
+  
+  /* Zebra stripe effect */
+  .player-table tbody tr:nth-child(odd) {
+    background-color: #f2f2f2;
+  }
+  
+  /* Hover effect on rows */
+  .player-table tbody tr:hover {
+    background-color: #eaf1f8;
+  }
+  
+  .player-table td {
+    padding: 12px;
+    border-bottom: 1px solid #dddddd;
+    text-align: center;
+  }
+  
+  .player-table th,
+  .player-table td {
+    border: none;
+    padding: 12px 15px;
+  }
+  
+  /* Button styling */
+  .action-button {
+    padding: 8px 12px;
+    margin: 5px;
+    font-size: 14px;
+    cursor: pointer;
+    border: none;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+  }
+  
+  /* Edit button */
+  .action-button.edit {
+    background-color: #f39c12;
+    color: white;
+  }
+  
+  .action-button.edit:hover {
+    background-color: #e67e22;
+  }
+  
+  /* Delete button */
+  .action-button {
+    background-color: #e74c3c;
+    color: white;
+  }
+  
+  .action-button:hover {
+    background-color: #c0392b;
+  }
+  
+  /* No players message */
+  .no-players {
+    font-style: italic;
+    color: #7f8c8d;
+  }

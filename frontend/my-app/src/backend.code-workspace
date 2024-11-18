@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": "../../../backend"
+		},
+		{
+			"path": "../.."
+		},
+		{
+			"path": "../../../node_modules"
+		}
+	],
+	"settings": {
+		"git.ignoreLimitWarning": true
+	}
+}
