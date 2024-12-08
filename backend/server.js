@@ -63,19 +63,30 @@ app.get("/players", (req, res) => {
 app.post("/players/add", async (req, res) => {
   const { name, team, points_per_game, assists_per_game, rebounds_per_game } = req.body;
 
+  const transaction = await Player.sequelize.transaction();
+
   try {
-    // Use Sequelize's create method to insert a new player into the database
-    const newPlayer = await Player.create({
-      name,
-      team,
-      points_per_game,
-      assists_per_game,
-      rebounds_per_game,
-    });
+    // Use Sequelize's create method to insert a new player into the database within a transaction
+    const newPlayer = await Player.create(
+      {
+        name,
+        team,
+        points_per_game,
+        assists_per_game,
+        rebounds_per_game,
+      },
+      { transaction } 
+    );
+
+    // Commit the transaction
+    await transaction.commit();
 
     console.log("Player inserted successfully with ID:", newPlayer.id);
     res.json({ id: newPlayer.id });
   } catch (error) {
+    // Rollback the transaction in case of an error
+    await transaction.rollback();
+
     console.error("Error inserting player:", error.message);
     res.status(400).json({ error: error.message });
   }
@@ -86,45 +97,74 @@ app.put("/players/:id", async (req, res) => {
   const { id } = req.params;
   const { name, team, points_per_game, assists_per_game, rebounds_per_game } = req.body;
 
+  const transaction = await Player.sequelize.transaction();
+
   try {
-    // Find the player by ID
-    const player = await Player.findByPk(id);
-    console.log("here");
+    // Find the player by ID within the transaction
+    const player = await Player.findByPk(id, { transaction });
 
-    if (!player) {
-      return res.status(404).json({ error: "Player not found" });
-    }
+    // Update player fields within the transaction
+    await player.update(
+      {
+        name,
+        team,
+        points_per_game,
+        assists_per_game,
+        rebounds_per_game,
+      },
+      { transaction }
+    );
 
-    // Update player fields
-    await player.update({
-      name,
-      team,
-      points_per_game,
-      assists_per_game,
-      rebounds_per_game,
-    });
+    // Commit the transaction
+    await transaction.commit();
 
     res.json({ message: "Player updated successfully", updatedPlayer: player });
   } catch (error) {
+    // Rollback the transaction in case of an error
+    await transaction.rollback();
+
     res.status(400).json({ error: error.message });
   }
 });
 
 // Deletes a player (Pepared Statement)
-app.delete("/players/:id", (req, res) => {
+app.delete("/players/:id", async (req, res) => {
   const { id } = req.params;
-  const sql = "DELETE FROM Players WHERE id = ?";
-  const stmt = db.prepare(sql);
 
-  stmt.run(id, function (err) {
-    if (err) {
-      res.status(400).json({ error: err.message });
-      return;
-    }
-    res.json({ deletedID: this.changes });
-  });
+  const transaction = await db.exec("BEGIN TRANSACTION;");
 
-  stmt.finalize();
+  try {
+    // Prepare the SQL statement to delete the player
+    const sql = "DELETE FROM Players WHERE id = ?";
+    const stmt = db.prepare(sql);
+
+    // Execute the delete operation within the transaction
+    stmt.run(id, function (err) {
+      if (err) {
+        throw new Error(err.message); // If an error occurs, it will be caught below
+      }
+
+      // Commit the transaction
+      db.exec("COMMIT;", (commitErr) => {
+        if (commitErr) {
+          throw new Error(commitErr.message);
+        }
+
+        res.json({ message: "Player deleted successfully", deletedID: this.changes });
+      });
+    });
+
+    stmt.finalize();
+  } catch (error) {
+    // Rollback the transaction in case of an error
+    db.exec("ROLLBACK;", (rollbackErr) => {
+      if (rollbackErr) {
+        console.error("Error during rollback:", rollbackErr.message);
+      }
+    });
+
+    res.status(400).json({ error: error.message });
+  }
 });
 
 // Search for players by name and team using a prepared statement
@@ -168,7 +208,19 @@ app.get("/players/search2", (req, res) => {
 
 // Get all teams
 app.get("/teams", (req, res) => {
-  const sql = "SELECT * FROM Teams";
+  const sql = `
+  SELECT 
+    GameStats.game_id,
+    GameStats.team_id,
+    GameStats.points,
+    GameStats.rebounds,
+    GameStats.assists,
+    GameStats.minutes_played,
+    Players.name AS player_name
+  FROM GameStats
+  INNER JOIN Players ON GameStats.player_id = Players.id
+`;
+
   db.all(sql, [], (err, rows) => {
     if (err) {
       res.status(400).json({ error: err.message });
@@ -179,21 +231,18 @@ app.get("/teams", (req, res) => {
 });
 
 app.post("/gamestats/add", (req, res) => {
-  console.log("Received data for /gamestats/add:", req.body);
   const { player_id, team_id, points, rebounds, assists, minutes_played } = req.body;
+
+  db.exec("BEGIN TRANSACTION;");
+
   const sql = `INSERT INTO GameStats (player_id, team_id, points, rebounds, assists, minutes_played)
                VALUES (?, ?, ?, ?, ?, ?)`;
   const params = [player_id, team_id, points, rebounds, assists, minutes_played];
 
-  db.run(sql, params, function (err) {
-    if (err) {
-      res.status(400).json({ error: err.message });
-      return;
-    }
+  db.run(sql, params, function () {
+    db.exec("COMMIT;");
     res.json({ message: "Game stats added successfully", id: this.lastID });
   });
-
-  
 });
 
 app.post("/gamestats/deleteAll", (req, res) => {
@@ -207,7 +256,6 @@ app.post("/gamestats/deleteAll", (req, res) => {
     res.json({ message: "All game stats deleted successfully" });
   });
 });
-
 
 // Get game stats by player
 app.get("/gamestats/player/:player_id", (req, res) => {
@@ -239,25 +287,37 @@ app.get("/gamestats/game/:game_id", (req, res) => {
 
 // Get all game stats
 app.get("/gamestats", (req, res) => {
-  const sql = "SELECT * FROM GameStats";
-  db.all(sql, [], (err, rows) => {
-    if (err) {
-      res.status(400).json({ error: err.message });
-      return;
-    }
-    res.json({ data: rows });
-  });
+  const sql = `
+  SELECT 
+    GameStats.game_id,
+    GameStats.team_id,
+    GameStats.points,
+    GameStats.rebounds,
+    GameStats.assists,
+    GameStats.minutes_played,
+    Players.name AS player_name
+  FROM GameStats
+  INNER JOIN Players ON GameStats.player_id = Players.id
+`;
+
+db.all(sql, [], (err, rows) => {
+  if (err) {
+    res.status(400).json({ error: err.message });
+    return;
+  }
+  res.json({ data: rows });
+});
 });
 
-// Delete a game stat entry by game_id
+// delete a game stat
 app.delete("/gamestats/:game_id", (req, res) => {
   const { game_id } = req.params;
+
+  db.exec("BEGIN TRANSACTION;");
+
   const sql = "DELETE FROM GameStats WHERE game_id = ?";
-  db.run(sql, [game_id], function (err) {
-    if (err) {
-      res.status(400).json({ error: err.message });
-      return;
-    }
+  db.run(sql, [game_id], function () {
+    db.exec("COMMIT;");
     res.json({ message: "Game stat deleted successfully", deletedID: this.changes });
   });
 });

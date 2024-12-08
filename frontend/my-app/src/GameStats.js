@@ -25,6 +25,8 @@ const GameStatsPage = () => {
   const fetchGameStats = async () => {
     try {
       const response = await axios.get("http://localhost:5000/gamestats"); // Updated URL to fetch all
+
+      console.log(response.data.data);
       setGameStats(response.data.data);
     } catch (error) {
       console.error("Error fetching game stats:", error);
@@ -61,7 +63,6 @@ const GameStatsPage = () => {
     }
   };
 
-
   // Add new game stat
   const handleAddGameStat = async (e) => {
     e.preventDefault();
@@ -96,13 +97,12 @@ const GameStatsPage = () => {
 
   const deleteAll = async () => {
     try {
-      await axios.post('http://localhost:5000/gamestats/deleteAll');
+      await axios.post("http://localhost:5000/gamestats/deleteAll");
       fetchGameStats();
-    }
-    catch (error) {
+    } catch (error) {
       console.error("Error deleting all game stats:", error);
     }
-  }
+  };
 
   // Filter game stats
   const handleFilter = async () => {
@@ -126,7 +126,6 @@ const GameStatsPage = () => {
 
       {/* Form to add game stats */}
       <form onSubmit={handleAddGameStat}>
-
         <h3>Add Game Stat</h3>
 
         <label>Player:</label>
@@ -160,8 +159,8 @@ const GameStatsPage = () => {
       {/* Filter section */}
       <div className="filter-section">
         <h3>Filter Game Stats</h3>
-        <label>Filter by Player ID:</label>
-        <input type="text" name="player_id" value={filter.player_id} onChange={(e) => setFilter({ ...filter, player_id: e.target.value })} />
+        {/* <label>Filter by Player ID:</label>
+        <input type="text" name="player_id" value={filter.player_id} onChange={(e) => setFilter({ ...filter, player_id: e.target.value })} /> */}
 
         <label>Filter by Game ID:</label>
         <input type="text" name="game_id" value={filter.game_id} onChange={(e) => setFilter({ ...filter, game_id: e.target.value })} />
@@ -175,7 +174,7 @@ const GameStatsPage = () => {
         <thead>
           <tr>
             <th>Game ID</th>
-            <th>Player ID</th>
+            <th>Name</th>
             <th>Team ID</th>
             <th>Points</th>
             <th>Rebounds</th>
@@ -187,7 +186,7 @@ const GameStatsPage = () => {
           {gameStats.map((stat, index) => (
             <tr key={index}>
               <td>{stat.game_id}</td>
-              <td>{stat.player_id}</td>
+              <td>{stat.player_name}</td>
               <td>{stat.team_id}</td>
               <td>{stat.points}</td>
               <td>{stat.rebounds}</td>
